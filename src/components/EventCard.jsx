@@ -1,7 +1,6 @@
 import { CATS } from '../constants'
 import { useRsvp } from '../hooks/useRsvp'
 import { useVotes } from '../hooks/useVotes'
-import { useUserBudget } from '../hooks/useVotes'
 import { useAuth } from '../AuthContext'
 
 function fmt12(t) {
@@ -10,12 +9,11 @@ function fmt12(t) {
   return `${h % 12 || 12}:${String(m).padStart(2, '0')} ${h >= 12 ? 'PM' : 'AM'}`
 }
 
-export default function EventCard({ event: ev, index, onEdit, onDelete }) {
+export default function EventCard({ event: ev, index, onEdit, onDelete, remaining = 500 }) {
   const cat = CATS[ev.category] || CATS.party
   const { user } = useAuth()
   const { myRsvp, yesCount, toggleRsvp } = useRsvp(ev.id)
   const { myVote, voteCount, toggleVote } = useVotes(ev.id, ev.cost || 0)
-  const { remaining } = useUserBudget()
 
   const canVote = !!myVote || (ev.cost || 0) <= remaining
   const links = ev.links || []

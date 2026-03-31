@@ -23,7 +23,7 @@ export function useVotes(eventId, eventCost = 0) {
   async function fetchVotes() {
     const { data } = await supabase
       .from('votes')
-      .select('*, profiles(name)')
+      .select('*')
       .eq('event_id', eventId)
     setVotes(data || [])
   }

@@ -21,7 +21,7 @@ export function useRsvp(eventId) {
   async function fetchRsvps() {
     const { data } = await supabase
       .from('rsvps')
-      .select('*, profiles(name, airport_code)')
+      .select('*')
       .eq('event_id', eventId)
     setRsvps(data || [])
   }

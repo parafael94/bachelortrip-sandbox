@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../AuthContext'
 import { useEvents } from '../hooks/useEvents'
+import { useUserBudget } from '../hooks/useVotes'
 import { DAYS, TRIP_START, WEATHER } from '../constants'
 import EventCard from '../components/EventCard'
 import EventModal from '../components/EventModal'
@@ -12,6 +13,7 @@ import VoteBudgetBar from '../components/VoteBudgetBar'
 export default function Trip() {
   const { profile, signOut } = useAuth()
   const { events, loading, addEvent, updateEvent, deleteEvent } = useEvents()
+  const { remaining } = useUserBudget()
   const [activeDay, setActiveDay] = useState(0)
   const [modalOpen, setModalOpen] = useState(false)
   const [editingEvent, setEditingEvent] = useState(null)
@@ -140,6 +142,7 @@ export default function Trip() {
                   key={ev.id}
                   event={ev}
                   index={idx}
+                  remaining={remaining}
                   onEdit={() => openEdit(ev)}
                   onDelete={() => handleDelete(ev.id)}
                 />
