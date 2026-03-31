@@ -1,104 +1,112 @@
 -- ════════════════════════════════════════════
--- BachTrip V5 — Supabase Schema
--- Run this in your Supabase SQL Editor
+-- BachTrip V5 — Supabase Schema (idempotent)
+-- Safe to run multiple times
 -- ════════════════════════════════════════════
 
--- 1. PROFILES (extends auth.users)
-create table if not exists profiles (
-  id            uuid references auth.users(id) on delete cascade primary key,
-  name          text,
-  home_city     text,
-  airport_code  text,
-  created_at    timestamptz default now()
+-- 1. TABLES
+CREATE TABLE IF NOT EXISTS profiles (
+  id           uuid REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
+  name         text,
+  home_city    text,
+  airport_code text,
+  created_at   timestamptz DEFAULT now()
 );
 
--- Auto-create profile row when a user signs up
-create or replace function handle_new_user()
-returns trigger as $$
-begin
-  insert into profiles (id) values (new.id);
-  return new;
-end;
-$$ language plpgsql security definer;
-
-create or replace trigger on_auth_user_created
-  after insert on auth.users
-  for each row execute procedure handle_new_user();
-
--- 2. EVENTS
-create table if not exists events (
-  id          text primary key default gen_random_uuid()::text,
-  day_key     text not null check (day_key in ('d0','d1','d2','d3','d4')),
-  time        text not null,
-  category    text not null,
-  title       text not null,
+CREATE TABLE IF NOT EXISTS events (
+  id          text PRIMARY KEY DEFAULT gen_random_uuid()::text,
+  day_key     text NOT NULL CHECK (day_key IN ('d0','d1','d2','d3','d4')),
+  time        text NOT NULL,
+  category    text NOT NULL,
+  title       text NOT NULL,
   location    text,
   notes       text,
-  cost        numeric default 0,
-  duration    integer default 60,
+  cost        numeric DEFAULT 0,
+  duration    integer DEFAULT 60,
   booking_url text,
   image_url   text,
-  links       jsonb default '[]',
-  sort_order  integer default 0,
-  created_at  timestamptz default now(),
-  updated_at  timestamptz default now()
+  links       jsonb DEFAULT '[]',
+  sort_order  integer DEFAULT 0,
+  created_at  timestamptz DEFAULT now(),
+  updated_at  timestamptz DEFAULT now()
 );
 
--- 3. RSVPs
-create table if not exists rsvps (
-  id         uuid default gen_random_uuid() primary key,
-  event_id   text references events(id) on delete cascade,
-  user_id    uuid references auth.users(id) on delete cascade,
-  status     text default 'unset' check (status in ('yes','no','unset')),
-  created_at timestamptz default now(),
-  unique(event_id, user_id)
+CREATE TABLE IF NOT EXISTS rsvps (
+  id         uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  event_id   text REFERENCES events(id) ON DELETE CASCADE,
+  user_id    uuid REFERENCES auth.users(id) ON DELETE CASCADE,
+  status     text DEFAULT 'unset' CHECK (status IN ('yes','no','unset')),
+  created_at timestamptz DEFAULT now(),
+  UNIQUE(event_id, user_id)
 );
 
--- ════════════════════════════════════════════
--- ROW LEVEL SECURITY
--- ════════════════════════════════════════════
-
--- Profiles: users can read all profiles, update only their own
-alter table profiles enable row level security;
-create policy "profiles_select" on profiles for select using (true);
-create policy "profiles_update" on profiles for update using (auth.uid() = id);
-
--- Events: all authenticated users can read/write
-alter table events enable row level security;
-create policy "events_select" on events for select using (auth.role() = 'authenticated');
-create policy "events_insert" on events for insert with check (auth.role() = 'authenticated');
-create policy "events_update" on events for update using (auth.role() = 'authenticated');
-create policy "events_delete" on events for delete using (auth.role() = 'authenticated');
-
--- RSVPs: read all, write own
-alter table rsvps enable row level security;
-create policy "rsvps_select" on rsvps for select using (auth.role() = 'authenticated');
-create policy "rsvps_insert" on rsvps for insert with check (auth.uid() = user_id);
-create policy "rsvps_update" on rsvps for update using (auth.uid() = user_id);
-create policy "rsvps_delete" on rsvps for delete using (auth.uid() = user_id);
-
--- 4. VOTES (budget voting — $500 per user across all events)
-create table if not exists votes (
-  id         uuid default gen_random_uuid() primary key,
-  event_id   text references events(id) on delete cascade,
-  user_id    uuid references auth.users(id) on delete cascade,
-  created_at timestamptz default now(),
-  unique(event_id, user_id)  -- one vote per user per event
+CREATE TABLE IF NOT EXISTS votes (
+  id         uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  event_id   text REFERENCES events(id) ON DELETE CASCADE,
+  user_id    uuid REFERENCES auth.users(id) ON DELETE CASCADE,
+  created_at timestamptz DEFAULT now(),
+  UNIQUE(event_id, user_id)
 );
 
--- ════════════════════════════════════════════
--- ROW LEVEL SECURITY — VOTES
--- ════════════════════════════════════════════
+-- 2. HANDLE NEW USER TRIGGER
+CREATE OR REPLACE FUNCTION handle_new_user()
+RETURNS trigger AS $$
+BEGIN
+  INSERT INTO public.profiles (id) VALUES (new.id);
+  RETURN new;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 
--- Votes: all crew can see all votes, users manage only their own
-alter table votes enable row level security;
-create policy "votes_select" on votes for select using (auth.role() = 'authenticated');
-create policy "votes_insert" on votes for insert with check (auth.uid() = user_id);
-create policy "votes_delete" on votes for delete using (auth.uid() = user_id);
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE PROCEDURE handle_new_user();
 
--- ════════════════════════════════════════════
--- REALTIME (enable for live sync)
--- ════════════════════════════════════════════
-alter publication supabase_realtime add table events;
-alter publication supabase_realtime add table rsvps;
-alter publication supabase_realtime add table votes;
+-- 3. ROW LEVEL SECURITY
+ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE events   ENABLE ROW LEVEL SECURITY;
+ALTER TABLE rsvps    ENABLE ROW LEVEL SECURITY;
+ALTER TABLE votes    ENABLE ROW LEVEL SECURITY;
+
+-- Profiles
+DROP POLICY IF EXISTS "profiles_select" ON profiles;
+DROP POLICY IF EXISTS "profiles_update" ON profiles;
+CREATE POLICY "profiles_select" ON profiles FOR SELECT USING (true);
+CREATE POLICY "profiles_update" ON profiles FOR UPDATE USING (auth.uid() = id);
+
+-- Events
+DROP POLICY IF EXISTS "events_select" ON events;
+DROP POLICY IF EXISTS "events_insert" ON events;
+DROP POLICY IF EXISTS "events_update" ON events;
+DROP POLICY IF EXISTS "events_delete" ON events;
+CREATE POLICY "events_select" ON events FOR SELECT USING (auth.role() = 'authenticated');
+CREATE POLICY "events_insert" ON events FOR INSERT WITH CHECK (auth.role() = 'authenticated');
+CREATE POLICY "events_update" ON events FOR UPDATE USING (auth.role() = 'authenticated');
+CREATE POLICY "events_delete" ON events FOR DELETE USING (auth.role() = 'authenticated');
+
+-- RSVPs
+DROP POLICY IF EXISTS "rsvps_select" ON rsvps;
+DROP POLICY IF EXISTS "rsvps_insert" ON rsvps;
+DROP POLICY IF EXISTS "rsvps_update" ON rsvps;
+DROP POLICY IF EXISTS "rsvps_delete" ON rsvps;
+CREATE POLICY "rsvps_select" ON rsvps FOR SELECT USING (auth.role() = 'authenticated');
+CREATE POLICY "rsvps_insert" ON rsvps FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "rsvps_update" ON rsvps FOR UPDATE USING (auth.uid() = user_id);
+CREATE POLICY "rsvps_delete" ON rsvps FOR DELETE USING (auth.uid() = user_id);
+
+-- Votes
+DROP POLICY IF EXISTS "votes_select" ON votes;
+DROP POLICY IF EXISTS "votes_insert" ON votes;
+DROP POLICY IF EXISTS "votes_delete" ON votes;
+CREATE POLICY "votes_select" ON votes FOR SELECT USING (auth.role() = 'authenticated');
+CREATE POLICY "votes_insert" ON votes FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "votes_delete" ON votes FOR DELETE USING (auth.uid() = user_id);
+
+-- 4. REPLICA IDENTITY (required for Realtime)
+ALTER TABLE events REPLICA IDENTITY FULL;
+ALTER TABLE rsvps  REPLICA IDENTITY FULL;
+ALTER TABLE votes  REPLICA IDENTITY FULL;
+
+-- 5. REALTIME
+ALTER PUBLICATION supabase_realtime ADD TABLE events;
+ALTER PUBLICATION supabase_realtime ADD TABLE rsvps;
+ALTER PUBLICATION supabase_realtime ADD TABLE votes;

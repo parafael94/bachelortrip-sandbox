@@ -47,19 +47,30 @@ export function useVotes(eventId, eventCost = 0) {
 
 export function useUserBudget() {
   const { user } = useAuth()
-  const [spent, setSpent]   = useState(0)
+  const [spent, setSpent]     = useState(0)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     if (!user) return
-    fetchSpent()
+    let active = true
 
-    const channel = supabase
-      .channel(`budget-${user.id}`)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'votes' }, fetchSpent)
+    async function load() {
+      await fetchSpent()
+    }
+    load()
+
+    const channelName = `budget-${user.id}-${Date.now()}`
+    const channel = supabase.channel(channelName)
+    channel
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'votes' }, () => {
+        if (active) fetchSpent()
+      })
       .subscribe()
 
-    return () => supabase.removeChannel(channel)
+    return () => {
+      active = false
+      supabase.removeChannel(channel)
+    }
   }, [user?.id])
 
   async function fetchSpent() {
