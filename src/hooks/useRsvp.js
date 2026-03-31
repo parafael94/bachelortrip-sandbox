@@ -12,9 +12,7 @@ export function useRsvp(eventId) {
 
     const channel = supabase
       .channel(`rsvp-${eventId}`)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'rsvps', filter: `event_id=eq.${eventId}` }, () => {
-        fetchRsvps()
-      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'rsvps' }, fetchRsvps)
       .subscribe()
 
     return () => supabase.removeChannel(channel)
@@ -39,7 +37,7 @@ export function useRsvp(eventId) {
     }
   }
 
-  const myRsvp = rsvps.find(r => r.user_id === user?.id)
+  const myRsvp   = rsvps.find(r => r.user_id === user?.id)
   const yesCount = rsvps.filter(r => r.status === 'yes').length
 
   return { rsvps, myRsvp, yesCount, toggleRsvp }

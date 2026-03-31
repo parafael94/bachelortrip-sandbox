@@ -4,7 +4,6 @@ import { useAuth } from '../AuthContext'
 
 export const VOTE_BUDGET = 500
 
-// Returns all votes for a single event, plus helpers for the current user
 export function useVotes(eventId, eventCost = 0) {
   const { user } = useAuth()
   const [votes, setVotes] = useState([])
@@ -15,10 +14,7 @@ export function useVotes(eventId, eventCost = 0) {
 
     const channel = supabase
       .channel(`votes-${eventId}`)
-      .on('postgres_changes', {
-        event: '*', schema: 'public', table: 'votes',
-        filter: `event_id=eq.${eventId}`
-      }, fetchVotes)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'votes' }, fetchVotes)
       .subscribe()
 
     return () => supabase.removeChannel(channel)
@@ -32,16 +28,14 @@ export function useVotes(eventId, eventCost = 0) {
     setVotes(data || [])
   }
 
-  const myVote = votes.find(v => v.user_id === user?.id)
+  const myVote   = votes.find(v => v.user_id === user?.id)
   const voteCount = votes.length
 
   async function toggleVote(userSpent) {
     if (!user) return
     if (myVote) {
-      // Un-vote — always allowed
       await supabase.from('votes').delete().eq('id', myVote.id)
     } else {
-      // Vote — check budget
       if (userSpent + eventCost > VOTE_BUDGET) return false
       await supabase.from('votes').insert({ event_id: eventId, user_id: user.id })
     }
@@ -51,10 +45,9 @@ export function useVotes(eventId, eventCost = 0) {
   return { votes, myVote, voteCount, toggleVote }
 }
 
-// Returns total $ the current user has spent across ALL events
 export function useUserBudget() {
   const { user } = useAuth()
-  const [spent, setSpent] = useState(0)
+  const [spent, setSpent]   = useState(0)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -62,19 +55,15 @@ export function useUserBudget() {
     fetchSpent()
 
     const channel = supabase
-      .channel('budget-watch')
-      .on('postgres_changes', {
-        event: '*', schema: 'public', table: 'votes',
-        filter: `user_id=eq.${user.id}`
-      }, fetchSpent)
+      .channel(`budget-${user.id}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'votes' }, fetchSpent)
       .subscribe()
 
     return () => supabase.removeChannel(channel)
-  }, [user])
+  }, [user?.id])
 
   async function fetchSpent() {
     if (!user) return
-    // Join votes → events to sum up costs of voted events
     const { data } = await supabase
       .from('votes')
       .select('events(cost)')
