@@ -1,0 +1,14 @@
+{
+  "name": "Bachelor Trip — San Juan 2026",
+  "short_name": "BachTrip",
+  "description": "Bachelor trip planner for San Juan, Puerto Rico — Labor Day 2026",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#07070e",
+  "theme_color": "#f0a500",
+  "orientation": "portrait",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
