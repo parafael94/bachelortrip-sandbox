@@ -28,18 +28,18 @@ export function useVotes(eventId, eventCost = 0) {
     setVotes(data || [])
   }
 
-  const myVote   = votes.find(v => v.user_id === user?.id)
+  const myVote    = votes.find(v => v.user_id === user?.id)
   const voteCount = votes.length
 
-  async function toggleVote(userSpent) {
+  // Budget enforcement is handled in the UI (canVote check in EventCard).
+  // This function only performs the DB operation.
+  async function toggleVote() {
     if (!user) return
     if (myVote) {
       await supabase.from('votes').delete().eq('id', myVote.id)
     } else {
-      if (userSpent + eventCost > VOTE_BUDGET) return false
       await supabase.from('votes').insert({ event_id: eventId, user_id: user.id })
     }
-    return true
   }
 
   return { votes, myVote, voteCount, toggleVote }
@@ -54,10 +54,7 @@ export function useUserBudget() {
     if (!user) return
     let active = true
 
-    async function load() {
-      await fetchSpent()
-    }
-    load()
+    fetchSpent()
 
     const channelName = `budget-${user.id}-${Date.now()}`
     const channel = supabase.channel(channelName)

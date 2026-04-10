@@ -4,13 +4,18 @@
 -- ════════════════════════════════════════════
 
 -- 1. TABLES
+
 CREATE TABLE IF NOT EXISTS profiles (
   id           uuid REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
   name         text,
   home_city    text,
   airport_code text,
+  trip_rsvp    text DEFAULT 'unset' CHECK (trip_rsvp IN ('yes','no','unset')),
   created_at   timestamptz DEFAULT now()
 );
+
+-- Idempotent column add for existing installs
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS trip_rsvp text DEFAULT 'unset' CHECK (trip_rsvp IN ('yes','no','unset'));
 
 CREATE TABLE IF NOT EXISTS events (
   id          text PRIMARY KEY DEFAULT gen_random_uuid()::text,
@@ -47,7 +52,32 @@ CREATE TABLE IF NOT EXISTS votes (
   UNIQUE(event_id, user_id)
 );
 
+-- Airbnb options (admin-managed, not user-created)
+CREATE TABLE IF NOT EXISTS airbnbs (
+  id              uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  title           text NOT NULL,
+  description     text,
+  price_per_night numeric DEFAULT 0,
+  total_price     numeric DEFAULT 0,
+  sleeps          integer DEFAULT 6,
+  location        text,
+  url             text,
+  image_url       text,
+  sort_order      integer DEFAULT 0,
+  created_at      timestamptz DEFAULT now()
+);
+
+-- Airbnb votes (separate from activity budget votes)
+CREATE TABLE IF NOT EXISTS airbnb_votes (
+  id          uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  airbnb_id   uuid REFERENCES airbnbs(id) ON DELETE CASCADE,
+  user_id     uuid REFERENCES auth.users(id) ON DELETE CASCADE,
+  created_at  timestamptz DEFAULT now(),
+  UNIQUE(airbnb_id, user_id)
+);
+
 -- 2. HANDLE NEW USER TRIGGER
+
 CREATE OR REPLACE FUNCTION handle_new_user()
 RETURNS trigger AS $$
 BEGIN
@@ -62,10 +92,13 @@ CREATE TRIGGER on_auth_user_created
   FOR EACH ROW EXECUTE PROCEDURE handle_new_user();
 
 -- 3. ROW LEVEL SECURITY
-ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
-ALTER TABLE events   ENABLE ROW LEVEL SECURITY;
-ALTER TABLE rsvps    ENABLE ROW LEVEL SECURITY;
-ALTER TABLE votes    ENABLE ROW LEVEL SECURITY;
+
+ALTER TABLE profiles     ENABLE ROW LEVEL SECURITY;
+ALTER TABLE events       ENABLE ROW LEVEL SECURITY;
+ALTER TABLE rsvps        ENABLE ROW LEVEL SECURITY;
+ALTER TABLE votes        ENABLE ROW LEVEL SECURITY;
+ALTER TABLE airbnbs      ENABLE ROW LEVEL SECURITY;
+ALTER TABLE airbnb_votes ENABLE ROW LEVEL SECURITY;
 
 -- Profiles
 DROP POLICY IF EXISTS "profiles_select" ON profiles;
@@ -93,7 +126,7 @@ CREATE POLICY "rsvps_insert" ON rsvps FOR INSERT WITH CHECK (auth.uid() = user_i
 CREATE POLICY "rsvps_update" ON rsvps FOR UPDATE USING (auth.uid() = user_id);
 CREATE POLICY "rsvps_delete" ON rsvps FOR DELETE USING (auth.uid() = user_id);
 
--- Votes
+-- Activity votes
 DROP POLICY IF EXISTS "votes_select" ON votes;
 DROP POLICY IF EXISTS "votes_insert" ON votes;
 DROP POLICY IF EXISTS "votes_delete" ON votes;
@@ -101,12 +134,73 @@ CREATE POLICY "votes_select" ON votes FOR SELECT USING (auth.role() = 'authentic
 CREATE POLICY "votes_insert" ON votes FOR INSERT WITH CHECK (auth.uid() = user_id);
 CREATE POLICY "votes_delete" ON votes FOR DELETE USING (auth.uid() = user_id);
 
--- 4. REPLICA IDENTITY (required for Realtime)
-ALTER TABLE events REPLICA IDENTITY FULL;
-ALTER TABLE rsvps  REPLICA IDENTITY FULL;
-ALTER TABLE votes  REPLICA IDENTITY FULL;
+-- Airbnbs (read-only for users; managed via Supabase dashboard)
+DROP POLICY IF EXISTS "airbnbs_select" ON airbnbs;
+CREATE POLICY "airbnbs_select" ON airbnbs FOR SELECT USING (auth.role() = 'authenticated');
 
--- 5. REALTIME
-ALTER PUBLICATION supabase_realtime ADD TABLE events;
-ALTER PUBLICATION supabase_realtime ADD TABLE rsvps;
-ALTER PUBLICATION supabase_realtime ADD TABLE votes;
+-- Airbnb votes
+DROP POLICY IF EXISTS "airbnb_votes_select" ON airbnb_votes;
+DROP POLICY IF EXISTS "airbnb_votes_insert" ON airbnb_votes;
+DROP POLICY IF EXISTS "airbnb_votes_delete" ON airbnb_votes;
+CREATE POLICY "airbnb_votes_select" ON airbnb_votes FOR SELECT USING (auth.role() = 'authenticated');
+CREATE POLICY "airbnb_votes_insert" ON airbnb_votes FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "airbnb_votes_delete" ON airbnb_votes FOR DELETE USING (auth.uid() = user_id);
+
+-- 4. REPLICA IDENTITY (required for Realtime)
+
+ALTER TABLE events       REPLICA IDENTITY FULL;
+ALTER TABLE rsvps        REPLICA IDENTITY FULL;
+ALTER TABLE votes        REPLICA IDENTITY FULL;
+ALTER TABLE airbnb_votes REPLICA IDENTITY FULL;
+
+-- 5. REALTIME (idempotent — skip if already a member)
+
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND tablename = 'events')
+  THEN ALTER PUBLICATION supabase_realtime ADD TABLE events; END IF;
+END $$;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND tablename = 'rsvps')
+  THEN ALTER PUBLICATION supabase_realtime ADD TABLE rsvps; END IF;
+END $$;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND tablename = 'votes')
+  THEN ALTER PUBLICATION supabase_realtime ADD TABLE votes; END IF;
+END $$;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND tablename = 'airbnb_votes')
+  THEN ALTER PUBLICATION supabase_realtime ADD TABLE airbnb_votes; END IF;
+END $$;
+
+-- 6. SEED AIRBNBS (only if table is empty)
+
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM airbnbs LIMIT 1) THEN
+    INSERT INTO airbnbs (title, description, price_per_night, total_price, sleeps, location, url, sort_order) VALUES
+    (
+      'Condado Beachfront Penthouse',
+      'Stunning oceanfront penthouse with private rooftop terrace, full kitchen, and panoramic Atlantic views. Steps from the beach and Condado strip.',
+      750, 3000, 10, 'Condado, San Juan',
+      'https://www.airbnb.com', 0
+    ),
+    (
+      'Old San Juan Colonial Villa',
+      'Historic 3-story villa in the heart of Old San Juan. Cobblestone streets, colorful facades, and a private courtyard with pool. Walk to everything.',
+      580, 2320, 10, 'Old San Juan',
+      'https://www.airbnb.com', 1
+    ),
+    (
+      'Isla Verde Oceanfront House',
+      'Modern beach house directly on Isla Verde beach. Private pool, outdoor kitchen, and direct sand access. Perfect for large groups.',
+      680, 2720, 12, 'Isla Verde, San Juan',
+      'https://www.airbnb.com', 2
+    ),
+    (
+      'Santurce Art District Loft',
+      'Sleek modern loft in the heart of San Juan''s coolest neighborhood. Walking distance to La Placita, galleries, and the best restaurants.',
+      320, 1280, 8, 'Santurce, San Juan',
+      'https://www.airbnb.com', 3
+    );
+  END IF;
+END $$;

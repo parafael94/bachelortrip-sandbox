@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import { supabase } from './supabase'
+import { fsIdentify, fsAnonymize, fsUserProps, fsAuthSignedIn, fsAuthSignedOut } from './lib/fullstory'
 
 const AuthContext = createContext({})
 
@@ -11,14 +12,24 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null)
-      if (session?.user) fetchProfile(session.user.id)
+      if (session?.user) {
+        fetchProfile(session.user.id)
+        fsIdentify(session.user.id)
+      }
       setLoading(false)
     })
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setUser(session?.user ?? null)
-      if (session?.user) fetchProfile(session.user.id)
-      else setProfile(null)
+      if (session?.user) {
+        fetchProfile(session.user.id)
+        fsIdentify(session.user.id)
+        if (event === 'SIGNED_IN') fsAuthSignedIn()
+      } else {
+        setProfile(null)
+        fsAnonymize()
+        if (event === 'SIGNED_OUT') fsAuthSignedOut()
+      }
     })
 
     return () => subscription.unsubscribe()
@@ -31,6 +42,15 @@ export function AuthProvider({ children }) {
       .eq('id', userId)
       .single()
     setProfile(data)
+    // Set user properties once profile is loaded — mask PII, only send non-sensitive metadata
+    if (data) {
+      fsUserProps({
+        has_name:         !!data.name,
+        has_airport_code: !!data.airport_code,
+        has_home_city:    !!data.home_city,
+        airport_code:     data.airport_code || 'unknown',
+      })
+    }
   }
 
   async function updateProfile(updates) {

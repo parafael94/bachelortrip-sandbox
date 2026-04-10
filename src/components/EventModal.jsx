@@ -47,18 +47,18 @@ export default function EventModal({ event, onSave, onClose }) {
   }
 
   return (
-    <div className="overlay" onClick={e => e.target.classList.contains('overlay') && onClose()}>
-      <div className="evt-modal">
-        <div className="modal-heading">{event ? '✏️ Edit Event' : '+ Add Event'}</div>
+    <div className="overlay" onClick={e => e.target.classList.contains('overlay') && onClose()} data-component="EventModalOverlay">
+      <div className="evt-modal" data-component="EventModal">
+        <div className="modal-heading" data-element="modal-title">{event ? '✏️ Edit Event' : '+ Add Event'}</div>
 
         <div className="form-row">
           <div className="form-group">
             <label>Time</label>
-            <input type="time" value={form.time} onChange={set('time')} />
+            <input type="time" value={form.time} onChange={set('time')} data-element="time-input" />
           </div>
           <div className="form-group">
             <label>Category</label>
-            <select value={form.category} onChange={set('category')}>
+            <select value={form.category} onChange={set('category')} data-element="category-select">
               {CATS.map(c => <option key={c} value={c}>{CAT_LABELS[c]}</option>)}
             </select>
           </div>
@@ -70,43 +70,44 @@ export default function EventModal({ event, onSave, onClose }) {
             type="text" value={form.title} onChange={set('title')}
             placeholder="e.g. Catamaran Snorkeling to Icacos Island"
             maxLength={100} autoFocus className={error ? 'field-error' : ''}
+            data-element="title-input"
           />
-          {error && <p className="form-error">{error}</p>}
+          {error && <p className="form-error" data-element="form-error">{error}</p>}
         </div>
 
         <div className="form-group">
           <label>Location / Venue</label>
-          <input type="text" value={form.location} onChange={set('location')} placeholder="e.g. Fajardo Marina" />
+          <input type="text" value={form.location} onChange={set('location')} placeholder="e.g. Fajardo Marina" data-element="location-input" />
         </div>
 
         <div className="form-row-3">
           <div className="form-group">
             <label>Cost (USD)</label>
-            <input type="number" value={form.cost} onChange={set('cost')} placeholder="0" min="0" />
+            <input type="number" value={form.cost} onChange={set('cost')} placeholder="0" min="0" data-element="cost-input" />
           </div>
           <div className="form-group">
             <label>Duration (min)</label>
-            <input type="number" value={form.duration} onChange={set('duration')} placeholder="60" min="15" />
+            <input type="number" value={form.duration} onChange={set('duration')} placeholder="60" min="15" data-element="duration-input" />
           </div>
           <div className="form-group">
             <label>Photo URL</label>
-            <input type="url" value={form.imageUrl} onChange={set('imageUrl')} placeholder="https://…" />
+            <input type="url" value={form.imageUrl} onChange={set('imageUrl')} placeholder="https://…" data-element="image-url-input" />
           </div>
         </div>
 
         <div className="form-group">
           <label>Notes / Details</label>
-          <textarea value={form.notes} onChange={set('notes')} placeholder="Reservations, dress code, tips…" />
+          <textarea value={form.notes} onChange={set('notes')} placeholder="Reservations, dress code, tips…" data-element="notes-input" />
         </div>
 
         <div className="form-group">
           <label>Booking / Info Link</label>
-          <input type="url" value={form.bookingUrl} onChange={set('bookingUrl')} placeholder="https://…" />
+          <input type="url" value={form.bookingUrl} onChange={set('bookingUrl')} placeholder="https://…" data-element="booking-url-input" />
         </div>
 
         <div className="modal-actions">
-          <button className="btn-cancel" onClick={onClose}>Cancel</button>
-          <button className="btn-save" onClick={handleSave}>Save Event</button>
+          <button className="btn-cancel" onClick={onClose} data-action="cancel-modal">Cancel</button>
+          <button className="btn-save" onClick={handleSave} data-action="save-event">Save Event</button>
         </div>
       </div>
     </div>

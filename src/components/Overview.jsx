@@ -1,4 +1,5 @@
 import { DAYS, CATS, TRIP_START } from '../constants'
+import Leaderboard from './Leaderboard'
 
 export default function Overview({ events }) {
   const totalEvents = DAYS.reduce((s, d) => s + (events[d.key]?.length || 0), 0)
@@ -14,20 +15,26 @@ export default function Overview({ events }) {
   const maxCat = Math.max(1, ...Object.values(catCounts))
 
   return (
-    <div>
-      <div className="overview-stats">
-        <div className="stat-card"><div className="sv">{totalEvents}</div><div className="sl">Total Events</div></div>
-        <div className="stat-card"><div className="sv">${totalCost.toLocaleString()}</div><div className="sl">Est. Total Cost</div></div>
-        <div className="stat-card"><div className="sv">{daysLeft > 0 ? daysLeft : '🎉'}</div><div className="sl">Days Until Trip</div></div>
-        <div className="stat-card"><div className="sv">5</div><div className="sl">Days of Fun</div></div>
+    <div data-component="Overview">
+
+      {/* ── LEADERBOARD ── */}
+      <Leaderboard />
+
+      {/* ── STATS ── */}
+      <div className="overview-stats" data-component="OverviewStats">
+        <div className="stat-card" data-element="stat-total-events"><div className="sv">{totalEvents}</div><div className="sl">Total Events</div></div>
+        <div className="stat-card" data-element="stat-total-cost"><div className="sv">${totalCost.toLocaleString()}</div><div className="sl">Est. Total Cost</div></div>
+        <div className="stat-card" data-element="stat-days-left"><div className="sv">{daysLeft > 0 ? daysLeft : '🎉'}</div><div className="sl">Days Until Trip</div></div>
+        <div className="stat-card" data-element="stat-days-fun"><div className="sv">5</div><div className="sl">Days of Fun</div></div>
       </div>
 
-      <div className="overview-grid">
+      {/* ── DAY GRID ── */}
+      <div className="overview-grid" data-component="OverviewGrid">
         {DAYS.map((d, i) => {
           const sorted = (events[d.key] || []).slice().sort((a, b) => a.time.localeCompare(b.time))
           const dayCost = sorted.reduce((s, e) => s + (e.cost || 0), 0)
           return (
-            <div key={d.key} className="ov-day">
+            <div key={d.key} className="ov-day" data-element="overview-day" data-day={d.key}>
               <div className="ov-day-header">{d.short}<br />{d.date}</div>
               <div className="ov-day-body">
                 {sorted.map(ev => {
@@ -47,12 +54,13 @@ export default function Overview({ events }) {
         })}
       </div>
 
-      <div className="cat-breakdown">
+      {/* ── CATEGORY BREAKDOWN ── */}
+      <div className="cat-breakdown" data-component="CategoryBreakdown">
         <h4>Activity Breakdown</h4>
         {Object.entries(catCounts).map(([label, count]) => {
           const cat = Object.values(CATS).find(c => c.label === label)
           return (
-            <div key={label} className="cat-bar-row">
+            <div key={label} className="cat-bar-row" data-element="cat-bar">
               <div className="cat-bar-label">{cat?.icon} {label}</div>
               <div className="cat-bar-track">
                 <div className="cat-bar-fill" style={{ width: `${Math.round(count / maxCat * 100)}%`, background: cat?.color || '#888' }} />
