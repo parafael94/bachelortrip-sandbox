@@ -172,35 +172,6 @@ DO $$ BEGIN
   THEN ALTER PUBLICATION supabase_realtime ADD TABLE airbnb_votes; END IF;
 END $$;
 
--- 6. SEED AIRBNBS (only if table is empty)
-
-DO $$
-BEGIN
-  IF NOT EXISTS (SELECT 1 FROM airbnbs LIMIT 1) THEN
-    INSERT INTO airbnbs (title, description, price_per_night, total_price, sleeps, location, url, sort_order) VALUES
-    (
-      'Condado Beachfront Penthouse',
-      'Stunning oceanfront penthouse with private rooftop terrace, full kitchen, and panoramic Atlantic views. Steps from the beach and Condado strip.',
-      750, 3000, 10, 'Condado, San Juan',
-      'https://www.airbnb.com', 0
-    ),
-    (
-      'Old San Juan Colonial Villa',
-      'Historic 3-story villa in the heart of Old San Juan. Cobblestone streets, colorful facades, and a private courtyard with pool. Walk to everything.',
-      580, 2320, 10, 'Old San Juan',
-      'https://www.airbnb.com', 1
-    ),
-    (
-      'Isla Verde Oceanfront House',
-      'Modern beach house directly on Isla Verde beach. Private pool, outdoor kitchen, and direct sand access. Perfect for large groups.',
-      680, 2720, 12, 'Isla Verde, San Juan',
-      'https://www.airbnb.com', 2
-    ),
-    (
-      'Santurce Art District Loft',
-      'Sleek modern loft in the heart of San Juan''s coolest neighborhood. Walking distance to La Placita, galleries, and the best restaurants.',
-      320, 1280, 8, 'Santurce, San Juan',
-      'https://www.airbnb.com', 3
-    );
-  END IF;
-END $$;
+-- 6. SEED AIRBNBS
+-- Add Airbnb options manually via the Supabase dashboard (Table Editor → airbnbs)
+-- or paste an INSERT here when you have the real links.

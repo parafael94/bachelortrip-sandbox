@@ -11,6 +11,7 @@ import AirbnbCarousel from '../components/AirbnbCarousel'
 import Countdown from '../components/Countdown'
 import VoteBudgetBar from '../components/VoteBudgetBar'
 import TripRsvpModal from '../components/TripRsvpModal'
+import SpotifyWidget from '../components/SpotifyWidget'
 import { fsPage, fsDaySwitched, fsOverviewViewed, fsEventAdded, fsEventEdited, fsEventDeleted, fsAirbnbsViewed } from '../lib/fullstory'
 
 // Day indices 0–4 = DAYS[0..4], 5 = Airbnbs, 6 = Overview
@@ -98,6 +99,9 @@ export default function Trip() {
 
       {/* ── VOTE BUDGET BAR ── */}
       <VoteBudgetBar />
+
+      {/* ── SPOTIFY ── */}
+      <SpotifyWidget />
 
       {/* ── WEATHER STRIP ── */}
       <div className="weather-strip" data-component="WeatherStrip">

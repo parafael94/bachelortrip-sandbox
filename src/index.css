@@ -313,6 +313,27 @@ body {
 .evt-cost-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 7px; padding-top: 7px; border-top: 1px solid var(--border); }
 .evt-vote-inline { display: flex; align-items: center; gap: 6px; margin-left: auto; }
 
+/* ── SPOTIFY WIDGET ── */
+.spotify-widget { background: var(--bg2); border-bottom: 1px solid var(--border); }
+.spotify-toggle {
+  width: 100%; display: flex; align-items: center; gap: 8px; padding: 7px 40px;
+  background: none; border: none; color: var(--muted); cursor: pointer;
+  font-size: .75rem; font-weight: 700; text-align: left; transition: color .15s;
+}
+.spotify-toggle:hover { color: #1db954; }
+.spotify-widget.expanded .spotify-toggle { color: #1db954; }
+.spotify-icon { color: #1db954; display: flex; align-items: center; flex-shrink: 0; }
+.spotify-label { flex: 1; }
+.spotify-chevron { font-size: .55rem; opacity: .6; }
+.spotify-player { padding: 0 40px 10px; }
+.spotify-player iframe { border-radius: 10px; display: block; }
+.spotify-placeholder {
+  background: var(--card); border: 1px dashed var(--border); border-radius: 10px;
+  padding: 16px; text-align: center; color: var(--muted); font-size: .78rem; line-height: 1.6;
+}
+.spotify-placeholder code { color: var(--gold); font-size: .72rem; }
+.spotify-placeholder-sub { font-size: .68rem; margin-top: 4px; opacity: .7; }
+
 /* ── AIRBNB COMING SOON BANNER ── */
 .airbnb-coming-soon-banner {
   display: inline-flex; align-items: center; gap: 8px;
@@ -330,7 +351,7 @@ body {
 
 /* ── AIRBNB CAROUSEL ── */
 .airbnb-section { padding: 0; }
-.airbnb-header { padding: 20px 0 14px; }
+.airbnb-header { padding: 20px 0 14px; text-align: center; }
 .airbnb-title { font-size: 1.3rem; font-weight: 800; color: var(--gold); }
 .airbnb-sub { color: var(--muted); font-size: .76rem; margin-top: 4px; }
 .airbnb-loading { color: var(--muted); font-size: .82rem; padding: 20px 0; }
@@ -407,4 +428,6 @@ body {
   .countdown-bar { padding: 6px 12px; font-size: .72rem; gap: 6px; }
   .lb-grid { grid-template-columns: 1fr; }
   .airbnb-card { flex: 0 0 240px; }
+  .spotify-toggle { padding: 7px 14px; }
+  .spotify-player { padding: 0 14px 10px; }
 }
