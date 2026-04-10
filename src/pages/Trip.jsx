@@ -48,11 +48,12 @@ export default function Trip() {
   function closeModal()     { setModalOpen(false);   setEditingEvent(null) }
 
   async function handleSave(ev) {
+    const { day_key, ...fields } = ev
     if (editingEvent) {
-      await updateEvent(editingEvent.id, ev)
+      await updateEvent(editingEvent.id, { ...fields, day_key })
       fsEventEdited(ev.category)
     } else {
-      await addEvent(DAYS[activeDay].key, ev)
+      await addEvent(day_key, fields)
       fsEventAdded(ev.category, ev.cost || 0)
     }
     closeModal()

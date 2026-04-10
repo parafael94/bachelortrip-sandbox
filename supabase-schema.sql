@@ -179,6 +179,38 @@ DO $$ BEGIN
   THEN ALTER PUBLICATION supabase_realtime ADD TABLE airbnb_votes; END IF;
 END $$;
 
--- 6. SEED AIRBNBS
+-- 6. SUGGESTIONS
+
+CREATE TABLE IF NOT EXISTS suggestions (
+  id         uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id    uuid REFERENCES auth.users(id) ON DELETE CASCADE,
+  title      text NOT NULL,
+  day_key    text CHECK (day_key IN ('d0','d1','d2','d3','d4')),
+  time       text DEFAULT '12:00',
+  category   text DEFAULT 'activity',
+  location   text,
+  notes      text,
+  cost       numeric DEFAULT 0,
+  status     text DEFAULT 'pending' CHECK (status IN ('pending','approved','rejected')),
+  created_at timestamptz DEFAULT now()
+);
+
+ALTER TABLE suggestions ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "suggestions_select" ON suggestions;
+DROP POLICY IF EXISTS "suggestions_insert" ON suggestions;
+DROP POLICY IF EXISTS "suggestions_delete" ON suggestions;
+DROP POLICY IF EXISTS "suggestions_update" ON suggestions;
+CREATE POLICY "suggestions_select" ON suggestions FOR SELECT USING (auth.role() = 'authenticated');
+CREATE POLICY "suggestions_insert" ON suggestions FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "suggestions_delete" ON suggestions FOR DELETE USING (auth.uid() = user_id);
+CREATE POLICY "suggestions_update" ON suggestions FOR UPDATE USING (auth.role() = 'authenticated');
+
+ALTER TABLE suggestions REPLICA IDENTITY FULL;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND tablename = 'suggestions')
+  THEN ALTER PUBLICATION supabase_realtime ADD TABLE suggestions; END IF;
+END $$;
+
+-- 7. SEED AIRBNBS
 -- Add Airbnb options manually via the Supabase dashboard (Table Editor → airbnbs)
 -- or paste an INSERT here when you have the real links.

@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react'
+import { DAYS } from '../constants'
 
 const CATS = ['party','food','activity','stay','transport','rest']
 const CAT_LABELS = { party:'🍻 Party / Nightlife', food:'🍽️ Food & Drinks', activity:'🎯 Activity / Adventure', stay:'🏨 Accommodation', transport:'🚗 Transport', rest:'💤 Rest / Free Time' }
 
-export default function EventModal({ event, onSave, onClose }) {
+export default function EventModal({ event, dayKey, onSave, onClose }) {
   const [form, setForm] = useState({
     time: '12:00', category: 'party', title: '',
-    location: '', notes: '', cost: '', duration: '60', bookingUrl: '', imageUrl: ''
+    location: '', notes: '', cost: '', duration: '60', bookingUrl: '', imageUrl: '',
+    day_key: dayKey || 'd0',
   })
   const [error, setError] = useState('')
 
@@ -22,6 +24,7 @@ export default function EventModal({ event, onSave, onClose }) {
         duration:   event.duration   ? String(event.duration) : '60',
         bookingUrl: event.bookingUrl || '',
         imageUrl:   event.imageUrl   || '',
+        day_key:    event.day_key    || dayKey || 'd0',
       })
     }
   }, [event])
@@ -43,8 +46,11 @@ export default function EventModal({ event, onSave, onClose }) {
       bookingUrl: form.bookingUrl.trim(),
       imageUrl:   form.imageUrl.trim(),
       links:      event?.links || [],
+      day_key:    form.day_key,
     })
   }
+
+  const activeDays = DAYS.filter(d => !d.travelDay)
 
   return (
     <div className="overlay" onClick={e => e.target.classList.contains('overlay') && onClose()} data-component="EventModalOverlay">
@@ -53,15 +59,24 @@ export default function EventModal({ event, onSave, onClose }) {
 
         <div className="form-row">
           <div className="form-group">
+            <label>Day</label>
+            <select value={form.day_key} onChange={set('day_key')} data-element="day-select">
+              {activeDays.map(d => (
+                <option key={d.key} value={d.key}>{d.short} · {d.date}</option>
+              ))}
+            </select>
+          </div>
+          <div className="form-group">
             <label>Time</label>
             <input type="time" value={form.time} onChange={set('time')} data-element="time-input" />
           </div>
-          <div className="form-group">
-            <label>Category</label>
-            <select value={form.category} onChange={set('category')} data-element="category-select">
-              {CATS.map(c => <option key={c} value={c}>{CAT_LABELS[c]}</option>)}
-            </select>
-          </div>
+        </div>
+
+        <div className="form-group">
+          <label>Category</label>
+          <select value={form.category} onChange={set('category')} data-element="category-select">
+            {CATS.map(c => <option key={c} value={c}>{CAT_LABELS[c]}</option>)}
+          </select>
         </div>
 
         <div className="form-group">

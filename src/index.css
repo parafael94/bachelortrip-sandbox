@@ -419,6 +419,29 @@ body {
 }
 .airbnb-link:hover { border-color: var(--gold); color: var(--gold); }
 
+/* ── SUGGESTIONS ── */
+.suggestions-section { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 18px; margin-bottom: 20px; }
+.suggestions-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.suggestions-title { font-size: .95rem; font-weight: 800; color: var(--gold); }
+.btn-suggest { background: var(--gold); color: #000; border: none; padding: 6px 14px; border-radius: 8px; font-size: .74rem; font-weight: 700; cursor: pointer; transition: background .15s; }
+.btn-suggest:hover { background: var(--gold2); }
+.suggestions-empty { font-size: .78rem; color: var(--muted); text-align: center; padding: 16px 0; }
+.suggestions-list { display: flex; flex-direction: column; gap: 8px; }
+.suggestion-card { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; }
+.sg-left { display: flex; align-items: flex-start; gap: 10px; flex: 1; min-width: 0; }
+.sg-icon { font-size: 1.2rem; flex-shrink: 0; margin-top: 2px; }
+.sg-title { font-size: .84rem; font-weight: 700; }
+.sg-meta { font-size: .68rem; color: var(--muted); margin-top: 2px; }
+.sg-notes { font-size: .7rem; color: var(--muted); margin-top: 4px; line-height: 1.45; }
+.sg-by { font-size: .63rem; color: var(--muted); margin-top: 4px; font-style: italic; }
+.sg-actions { display: flex; gap: 5px; flex-shrink: 0; }
+.sg-btn { padding: 4px 10px; border-radius: 6px; border: none; font-size: .7rem; font-weight: 700; cursor: pointer; transition: opacity .15s; }
+.sg-btn:hover { opacity: .8; }
+.sg-btn.approve { background: rgba(39,174,96,.18); color: var(--green); }
+.sg-btn.reject  { background: rgba(231,76,60,.13); color: var(--red); }
+.suggest-sub { font-size: .74rem; color: var(--muted); margin-bottom: 14px; }
+.suggest-done { text-align: center; padding: 20px; font-size: .88rem; color: var(--green); font-weight: 700; }
+
 /* ── CREW LIST ── */
 .crew-section { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 18px; margin-bottom: 20px; }
 .crew-title { font-size: .95rem; font-weight: 800; color: var(--gold); margin-bottom: 14px; }
