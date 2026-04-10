@@ -4,7 +4,7 @@ import { DAYS, CATS } from '../constants'
 import SuggestModal from './SuggestModal'
 
 export default function SuggestionBoard() {
-  const { suggestions, loading, promoteSuggestion, rejectSuggestion } = useSuggestions()
+  const { suggestions, loading, submitSuggestion, promoteSuggestion, rejectSuggestion } = useSuggestions()
   const [modalOpen, setModalOpen] = useState(false)
 
   if (loading) return null
@@ -37,7 +37,7 @@ export default function SuggestionBoard() {
                       {s.cost > 0 ? ` · 💰 $${s.cost}` : ''}
                     </div>
                     {s.notes && <div className="sg-notes">{s.notes}</div>}
-                    <div className="sg-by">suggested by {s.profiles?.name || 'crew member'}</div>
+                    <div className="sg-by">suggested by crew member</div>
                   </div>
                 </div>
                 <div className="sg-actions">
@@ -54,7 +54,7 @@ export default function SuggestionBoard() {
         </div>
       )}
 
-      {modalOpen && <SuggestModal onClose={() => setModalOpen(false)} />}
+      {modalOpen && <SuggestModal onClose={() => setModalOpen(false)} onSubmit={submitSuggestion} />}
     </div>
   )
 }

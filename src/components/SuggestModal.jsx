@@ -1,12 +1,10 @@
 import { useState } from 'react'
 import { DAYS } from '../constants'
-import { useSuggestions } from '../hooks/useSuggestions'
 
 const CATS = ['party','food','activity','stay','transport','rest']
 const CAT_LABELS = { party:'🍻 Party / Nightlife', food:'🍽️ Food & Drinks', activity:'🎯 Activity / Adventure', stay:'🏨 Accommodation', transport:'🚗 Transport', rest:'💤 Rest / Free Time' }
 
-export default function SuggestModal({ onClose }) {
-  const { submitSuggestion } = useSuggestions()
+export default function SuggestModal({ onClose, onSubmit }) {
   const [form, setForm] = useState({ title: '', day_key: 'd0', time: '12:00', category: 'activity', location: '', notes: '', cost: '' })
   const [saving, setSaving] = useState(false)
   const [done, setDone]     = useState(false)
@@ -17,7 +15,7 @@ export default function SuggestModal({ onClose }) {
   async function handleSubmit() {
     if (!form.title.trim()) { setError('Name is required.'); return }
     setSaving(true)
-    const ok = await submitSuggestion({ ...form, cost: parseFloat(form.cost) || 0, title: form.title.trim() })
+    const ok = await onSubmit({ ...form, cost: parseFloat(form.cost) || 0, title: form.title.trim() })
     setSaving(false)
     if (!ok) { setError('Could not submit — try again.'); return }
     setDone(true)

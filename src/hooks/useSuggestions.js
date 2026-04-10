@@ -21,7 +21,7 @@ export function useSuggestions() {
   async function fetchSuggestions() {
     const { data, error } = await supabase
       .from('suggestions')
-      .select('*, profiles(name)')
+      .select('*')
       .eq('status', 'pending')
       .order('created_at', { ascending: false })
     if (error) console.error('useSuggestions fetch error:', error.message)
