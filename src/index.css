@@ -419,6 +419,49 @@ body {
 }
 .airbnb-link:hover { border-color: var(--gold); color: var(--gold); }
 
+/* ── CREW LIST ── */
+.crew-section { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 18px; margin-bottom: 20px; }
+.crew-title { font-size: .95rem; font-weight: 800; color: var(--gold); margin-bottom: 14px; }
+
+.crew-summary { display: flex; gap: 10px; margin-bottom: 16px; }
+.crew-stat { flex: 1; background: var(--bg2); border-radius: 10px; padding: 10px; text-align: center; border: 1px solid var(--border); }
+.crew-stat.going     { border-color: rgba(39,174,96,.3); }
+.crew-stat.cant      { border-color: rgba(231,76,60,.3); }
+.crew-stat.undecided { border-color: rgba(240,165,0,.2); }
+.cs-num { display: block; font-size: 1.5rem; font-weight: 800; color: var(--gold); }
+.crew-stat.going  .cs-num { color: var(--green); }
+.crew-stat.cant   .cs-num { color: var(--red); }
+.cs-lbl { font-size: .64rem; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .4px; }
+
+.crew-grid { display: flex; flex-direction: column; gap: 8px; }
+.crew-card {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 10px; padding: 9px 12px; transition: border-color .15s;
+}
+.crew-card.rsvp-yes   { border-left: 3px solid var(--green); }
+.crew-card.rsvp-no    { border-left: 3px solid var(--red); }
+.crew-card.rsvp-      { border-left: 3px solid var(--border); }
+.crew-card.me         { background: linear-gradient(90deg, var(--card), var(--bg2)); }
+
+.crew-avatar {
+  width: 36px; height: 36px; border-radius: 50%; background: var(--gold);
+  color: #000; font-size: .8rem; font-weight: 800;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.crew-card.rsvp-no .crew-avatar { background: var(--border); color: var(--muted); }
+
+.crew-info { flex: 1; min-width: 0; }
+.crew-name { font-size: .82rem; font-weight: 700; display: flex; align-items: center; gap: 6px; }
+.crew-you { font-size: .6rem; background: var(--gold); color: #000; border-radius: 20px; padding: 1px 6px; font-weight: 800; }
+.crew-airport { font-size: .68rem; color: var(--muted); margin-top: 2px; }
+
+.crew-rsvp-badge { font-size: .65rem; font-weight: 700; white-space: nowrap; padding: 3px 8px; border-radius: 20px; }
+.crew-rsvp-badge.yes   { background: rgba(39,174,96,.15);  color: var(--green); }
+.crew-rsvp-badge.no    { background: rgba(231,76,60,.12);  color: var(--red); }
+.crew-rsvp-badge.      { background: rgba(160,160,176,.1); color: var(--muted); }
+.crew-empty { font-size: .78rem; color: var(--muted); text-align: center; padding: 16px 0; }
+
 /* ── LEADERBOARD ── */
 .leaderboard { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 16px 18px; margin-bottom: 20px; }
 .lb-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }

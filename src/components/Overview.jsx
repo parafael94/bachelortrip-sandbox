@@ -1,5 +1,6 @@
 import { DAYS, CATS, TRIP_START } from '../constants'
 import Leaderboard from './Leaderboard'
+import CrewList from './CrewList'
 
 export default function Overview({ events }) {
   const totalEvents = DAYS.reduce((s, d) => s + (events[d.key]?.length || 0), 0)
@@ -16,6 +17,9 @@ export default function Overview({ events }) {
 
   return (
     <div data-component="Overview">
+
+      {/* ── CREW ── */}
+      <CrewList />
 
       {/* ── LEADERBOARD ── */}
       <Leaderboard />

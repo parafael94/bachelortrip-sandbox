@@ -102,8 +102,10 @@ ALTER TABLE airbnb_votes ENABLE ROW LEVEL SECURITY;
 
 -- Profiles
 DROP POLICY IF EXISTS "profiles_select" ON profiles;
+DROP POLICY IF EXISTS "profiles_insert" ON profiles;
 DROP POLICY IF EXISTS "profiles_update" ON profiles;
 CREATE POLICY "profiles_select" ON profiles FOR SELECT USING (true);
+CREATE POLICY "profiles_insert" ON profiles FOR INSERT WITH CHECK (auth.uid() = id);
 CREATE POLICY "profiles_update" ON profiles FOR UPDATE USING (auth.uid() = id);
 
 -- Events
@@ -148,6 +150,7 @@ CREATE POLICY "airbnb_votes_delete" ON airbnb_votes FOR DELETE USING (auth.uid()
 
 -- 4. REPLICA IDENTITY (required for Realtime)
 
+ALTER TABLE profiles     REPLICA IDENTITY FULL;
 ALTER TABLE events       REPLICA IDENTITY FULL;
 ALTER TABLE rsvps        REPLICA IDENTITY FULL;
 ALTER TABLE votes        REPLICA IDENTITY FULL;
@@ -155,6 +158,10 @@ ALTER TABLE airbnb_votes REPLICA IDENTITY FULL;
 
 -- 5. REALTIME (idempotent — skip if already a member)
 
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND tablename = 'profiles')
+  THEN ALTER PUBLICATION supabase_realtime ADD TABLE profiles; END IF;
+END $$;
 DO $$ BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND tablename = 'events')
   THEN ALTER PUBLICATION supabase_realtime ADD TABLE events; END IF;
