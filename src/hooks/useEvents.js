@@ -27,8 +27,17 @@ export function useEvents() {
       .order('time', { ascending: true })
 
     if (error || !data?.length) {
-      // Seed with defaults if table is empty
-      setEvents(DEFAULT_EVENTS)
+      // Persist defaults to DB so votes FK works, then re-fetch
+      await seedDefaults()
+      const { data: seeded } = await supabase
+        .from('events').select('*').order('time', { ascending: true })
+      if (seeded?.length) {
+        const grouped = { d0: [], d1: [], d2: [], d3: [], d4: [] }
+        seeded.forEach(ev => { if (grouped[ev.day_key] !== undefined) grouped[ev.day_key].push(ev) })
+        setEvents(grouped)
+      } else {
+        setEvents(DEFAULT_EVENTS)
+      }
       setLoading(false)
       return
     }
