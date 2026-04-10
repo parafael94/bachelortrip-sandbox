@@ -295,6 +295,8 @@ body {
 .rsvp-choice.yes.selected { border-color: var(--green); background: rgba(39,174,96,.14); }
 .rsvp-choice.no.selected  { border-color: var(--red);   background: rgba(231,76,60,.12); }
 .rsvp-check { position: absolute; top: 6px; right: 8px; font-size: .7rem; color: var(--green); font-weight: 800; }
+.rsvp-choice:disabled { opacity: .6; cursor: not-allowed; }
+.rsvp-error { color: var(--red); font-size: .72rem; margin-bottom: 10px; }
 .rsvp-undecided { background: none; border: 1px solid var(--border); color: var(--muted); padding: 6px 16px; border-radius: 8px; cursor: pointer; font-size: .72rem; margin-bottom: 10px; transition: all .15s; }
 .rsvp-undecided:hover { border-color: var(--muted); color: var(--text); }
 .rsvp-modal-close { background: none; border: none; color: var(--muted); font-size: .75rem; cursor: pointer; padding: 4px 10px; transition: color .15s; }
