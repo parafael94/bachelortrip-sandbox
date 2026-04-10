@@ -3,9 +3,9 @@ import { supabase } from '../supabase'
 import { useAuth } from '../AuthContext'
 
 const STATUS = {
-  yes:   { label: "I'm In!",       icon: '✈️', cls: 'yes' },
-  no:    { label: "Can't Make It", icon: '😢', cls: 'no'  },
-  unset: { label: 'Undecided',     icon: '❓', cls: ''    },
+  yes:   { label: "I'm In!",       icon: '✈️', cls: 'yes'   },
+  no:    { label: "Can't Make It", icon: '😢', cls: 'no'    },
+  unset: { label: 'Undecided',     icon: '❓', cls: 'unset' },
 }
 
 export default function CrewList() {
@@ -29,6 +29,7 @@ export default function CrewList() {
       .select('id, name, airport_code, trip_rsvp, created_at')
       .order('created_at', { ascending: true })
     if (error) console.error('CrewList fetch error:', error.message)
+    console.log('CrewList data:', data)
     setCrew(data || [])
   }
 
@@ -83,7 +84,7 @@ export default function CrewList() {
         })}
 
         {crew.length === 0 && (
-          <p className="crew-empty">No crew members yet — share the link!</p>
+          <p className="crew-empty">Loading crew… (if this persists, check console)</p>
         )}
       </div>
     </div>
