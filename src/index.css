@@ -43,6 +43,19 @@ body {
 .profile-btn { display: flex; align-items: center; gap: 6px; }
 .avatar-sm { width: 24px; height: 24px; border-radius: 50%; background: var(--gold); color: #000; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: .78rem; flex-shrink: 0; }
 
+/* ── SYNC BANNER ── */
+.sync-banner {
+  background: rgba(231,76,60,.12); border-bottom: 1px solid rgba(231,76,60,.3);
+  padding: 8px 40px; display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; font-size: .76rem; color: var(--red); flex-wrap: wrap;
+}
+.sync-btn {
+  background: var(--red); color: #fff; border: none; padding: 5px 14px;
+  border-radius: 6px; font-size: .74rem; font-weight: 700; cursor: pointer;
+  white-space: nowrap; transition: opacity .15s;
+}
+.sync-btn:disabled { opacity: .6; cursor: not-allowed; }
+
 /* ── COUNTDOWN ── */
 .countdown-bar {
   background: linear-gradient(90deg, var(--gold2), var(--gold));

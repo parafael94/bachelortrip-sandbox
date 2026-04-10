@@ -20,7 +20,7 @@ const AIRBNBS_IDX  = 5
 
 export default function Trip() {
   const { profile, signOut } = useAuth()
-  const { events, loading, addEvent, updateEvent, deleteEvent } = useEvents()
+  const { events, loading, dbReady, seeding, seedDefaults, addEvent, updateEvent, deleteEvent } = useEvents()
   const { remaining } = useUserBudget()
   const [activeDay, setActiveDay] = useState(0)
   const [modalOpen, setModalOpen] = useState(false)
@@ -93,6 +93,16 @@ export default function Trip() {
           <button className="btn-ghost" onClick={signOut} data-action="sign-out">Sign Out</button>
         </div>
       </header>
+
+      {/* ── DB SYNC BANNER — only shows if events aren't in Supabase yet ── */}
+      {!dbReady && (
+        <div className="sync-banner">
+          <span>⚠️ Events not yet synced to database — voting won't work until you sync.</span>
+          <button className="sync-btn" onClick={seedDefaults} disabled={seeding}>
+            {seeding ? 'Syncing…' : 'Sync Events to DB'}
+          </button>
+        </div>
+      )}
 
       {/* ── COUNTDOWN ── */}
       <Countdown tripStart={TRIP_START} />

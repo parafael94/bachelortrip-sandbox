@@ -31,15 +31,20 @@ export function useVotes(eventId, eventCost = 0) {
   const myVote    = votes.find(v => v.user_id === user?.id)
   const voteCount = votes.length
 
-  // Budget enforcement is handled in the UI (canVote check in EventCard).
-  // This function only performs the DB operation.
   async function toggleVote() {
     if (!user) return
+    let error
     if (myVote) {
-      await supabase.from('votes').delete().eq('id', myVote.id)
+      ;({ error } = await supabase.from('votes').delete().eq('id', myVote.id))
     } else {
-      await supabase.from('votes').insert({ event_id: eventId, user_id: user.id })
+      ;({ error } = await supabase.from('votes').insert({ event_id: eventId, user_id: user.id }))
     }
+    if (error) {
+      console.error('Vote error:', error.message, '| event_id:', eventId)
+      return
+    }
+    // Force local re-fetch immediately — don't wait for realtime
+    await fetchVotes()
   }
 
   return { votes, myVote, voteCount, toggleVote }
@@ -72,11 +77,12 @@ export function useUserBudget() {
 
   async function fetchSpent() {
     if (!user) return
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('votes')
       .select('events(cost)')
       .eq('user_id', user.id)
 
+    if (error) { console.error('Budget fetch error:', error.message); return }
     const total = (data || []).reduce((s, v) => s + (v.events?.cost || 0), 0)
     setSpent(total)
     setLoading(false)
