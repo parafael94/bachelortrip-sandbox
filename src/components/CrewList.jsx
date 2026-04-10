@@ -24,10 +24,11 @@ export default function CrewList() {
   }, [])
 
   async function fetchCrew() {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('profiles')
-      .select('id, name, airport_code, trip_rsvp')
+      .select('id, name, airport_code, trip_rsvp, created_at')
       .order('created_at', { ascending: true })
+    if (error) console.error('CrewList fetch error:', error.message)
     setCrew(data || [])
   }
 
