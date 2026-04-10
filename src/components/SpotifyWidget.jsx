@@ -4,7 +4,7 @@ import { useState } from 'react'
 // To find it: open the playlist on Spotify → Share → Copy link
 // The ID is the string after /playlist/ and before any ?
 // e.g. https://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M → ID is 37i9dQZF1DXcBWIGoYBM5M
-const PLAYLIST_ID = '23CNxzbAq31je2JSFSoE8d'
+const PLAYLIST_ID = '24bd4TPuAXABOahNicbneH'
 
 const HAS_PLAYLIST = PLAYLIST_ID !== 'YOUR_PLAYLIST_ID_HERE'
 
