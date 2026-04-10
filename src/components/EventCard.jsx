@@ -76,7 +76,7 @@ export default function EventCard({ event: ev, index, onEdit, onDelete, remainin
           <div className="evt-cost-row">
             <span className="evt-cost-badge" data-element="cost-badge">💰 ${ev.cost}/person</span>
 
-            {user && (
+            {user && !ev.noVote && (
               <div className="evt-vote-inline">
                 <button
                   className={`vote-btn ${myVote ? 'voted' : ''} ${!canVote && !myVote ? 'disabled' : ''}`}

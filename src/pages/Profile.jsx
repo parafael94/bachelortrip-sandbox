@@ -68,6 +68,9 @@ export default function Profile() {
   return (
     <div className="page-wrap" data-component="ProfilePage">
       <div className="profile-card">
+        <button className="btn-back" onClick={() => navigate('/')} data-action="back-home">
+          ← Back to Trip
+        </button>
         <div className="profile-avatar">{name ? name.charAt(0).toUpperCase() : '?'}</div>
         <h2>Your Profile</h2>
         <p className="profile-email fs-mask">{user?.email}</p>

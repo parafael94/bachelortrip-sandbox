@@ -59,7 +59,11 @@ export function AuthProvider({ children }) {
       .upsert({ id: user.id, ...updates })
       .select()
       .single()
-    if (!error) setProfile(data)
+    if (error) {
+      console.error('updateProfile error:', error.message, '| updates:', updates)
+    } else {
+      setProfile(data)
+    }
     return { data, error }
   }
 
